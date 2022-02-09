@@ -25,7 +25,7 @@ jobs:
         id: build-image
         uses: redhat-actions/buildah-build@v2
         with:
-          image: cli-preview-in-server
+          image: sdk-test-scenes
           tags: ${{ github.sha }} next
           dockerfiles: |
             ./Dockerfile
@@ -33,7 +33,7 @@ jobs:
       # Podman Login action (https://github.com/redhat-actions/podman-login) also be used to log in,
       # in which case 'username' and 'password' can be omitted.
       - name: Push To quay.io
-        if: github.ref == 'refs/heads/inexistent-branch'
+        if: github.ref == 'refs/heads/main'
         id: push-to-quay
         uses: redhat-actions/push-to-registry@v2
         with:
@@ -44,15 +44,15 @@ jobs:
           password: ${{ secrets.QUAY_TOKEN }}
 
       - name: Print image url
-        if: github.ref == 'refs/heads/inexistent-branch'
+        if: github.ref == 'refs/heads/main'
         run: echo "Image pushed to ${{ steps.push-to-quay.outputs.registry-paths }}"
 
       - name: Trigger deployment
         id: deploy
-        if: github.ref == 'refs/heads/inexistent-branch'
+        if: github.ref == 'refs/heads/main'
         uses: decentraland/dcl-deploy-action@main
         with:
           dockerImage: "${{ steps.push-to-quay.outputs.registry-path }}"
-          serviceName: cli-preview-in-server
+          serviceName: sdk-test-scenes
           env: dev
           token: ${{ secrets.GITHUB_TOKEN }}
