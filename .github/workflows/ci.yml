@@ -3,7 +3,7 @@ name: docker
 on:
   push:
     branches:
-      - "main"
+      - "inexistent-branch"
   pull_request:
 
 jobs:
@@ -29,10 +29,11 @@ jobs:
           tags: ${{ github.sha }} next
           dockerfiles: |
             ./Dockerfile
+
       # Podman Login action (https://github.com/redhat-actions/podman-login) also be used to log in,
       # in which case 'username' and 'password' can be omitted.
       - name: Push To quay.io
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/inexistent-branch'
         id: push-to-quay
         uses: redhat-actions/push-to-registry@v2
         with:
@@ -43,12 +44,12 @@ jobs:
           password: ${{ secrets.QUAY_TOKEN }}
 
       - name: Print image url
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/inexistent-branch'
         run: echo "Image pushed to ${{ steps.push-to-quay.outputs.registry-paths }}"
 
       - name: Trigger deployment
         id: deploy
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/inexistent-branch'
         uses: decentraland/dcl-deploy-action@main
         with:
           dockerImage: "${{ steps.push-to-quay.outputs.registry-path }}"
