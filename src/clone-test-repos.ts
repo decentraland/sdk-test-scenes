@@ -6,7 +6,7 @@ import { downloadRepo } from "./utils/shellCommands"
 type RepositoryItem = {
   url: string
   base?: string
-  isPortableExperience: boolean
+  isPortableExperience?: boolean
 }
 
 type RepositoryFile = {
