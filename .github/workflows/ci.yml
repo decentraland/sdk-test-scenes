@@ -21,6 +21,8 @@ jobs:
         run: npm ci
       - name: build
         run: npm run build
+      - name: build scenes
+        run: npm run build-scenes
       - name: Build Image
         id: build-image
         uses: redhat-actions/buildah-build@v2
