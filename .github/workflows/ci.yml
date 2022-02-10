@@ -20,7 +20,7 @@ jobs:
       - name: install
         run: npm ci
       - name: build
-        run: npm start
+        run: npm run build
       - name: Build Image
         id: build-image
         uses: redhat-actions/buildah-build@v2
