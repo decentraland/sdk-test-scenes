@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "tsc && node scripts/index.js"
+    "build": "tsc",
+    "build-scenes": "npm run build && node dist/index.js",
+    "clone-repos": "npm run build && node dist/clone-test-repos.js"
   },
   "author": "",
   "license": "ISC",

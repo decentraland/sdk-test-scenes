@@ -1,0 +1,12 @@
+{
+  "repositories": [
+    {
+      "url": "https://github.com/decentraland-scenes/avatar-swap",
+      "base": "5,5"
+    },
+    {
+      "url": "https://github.com/decentraland-scenes/switchboard-platforms",
+      "base": "5,3"
+    }
+  ]
+}
