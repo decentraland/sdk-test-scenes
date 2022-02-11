@@ -13,5 +13,5 @@
     "outDir": "dist",
     "resolveJsonModule": true
   },
-  "exclude": ["test-scenes", "node_modules", "scene"]
+  "exclude": ["test-scenes", "node_modules", "scene*"]
 }
