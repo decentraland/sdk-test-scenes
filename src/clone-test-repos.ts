@@ -1,21 +1,15 @@
-import fs from "fs-extra"
-import path from "path"
-import { TEST_SCENE_FOLDER } from "./utils/consts"
-import { downloadRepo } from "./utils/shellCommands"
+import fs from 'fs-extra'
+import path from 'path'
+import PQueue from 'p-queue/dist'
 
-type RepositoryItem = {
-  url: string
-  base?: string
-  isPortableExperience?: boolean
-}
-
-type RepositoryFile = {
-  repositories: RepositoryItem[]
-}
+import repositoryListJson from './scenes-repository-list.json'
+import { TEST_SCENE_FOLDER } from './utils/consts'
+import { downloadRepo } from './utils/shellCommands'
 
 const Vector2 = {
   fromString(str: string) {
-    return { x: parseInt(str.split(',')[0]), y: parseInt(str.split(',')[1]) }
+    const [x, y] = str.split(',').map(val => parseInt(val))
+    return { x, y }
   },
   toString(vector: { x: number, y: number }) {
     return `${vector.x},${vector.y}`
@@ -23,7 +17,7 @@ const Vector2 = {
 }
 
 function relocateScene(workingDir: string, newBaseParcel: string) {
-  const sceneJsonPath = path.resolve(workingDir, "scene.json")
+  const sceneJsonPath = path.resolve(workingDir, 'scene.json')
   const sceneJson = fs.readJSONSync(sceneJsonPath)
 
   const newBaseCoords = Vector2.fromString(newBaseParcel)
@@ -44,25 +38,26 @@ function relocateScene(workingDir: string, newBaseParcel: string) {
 }
 
 export async function cloneTestRepos() {
+  const queue = new PQueue({ concurrency: 10 })
   const currentWorkingDir = path.resolve(process.cwd(), TEST_SCENE_FOLDER)
-  const repositoryFilePath = path.resolve(process.cwd(), 'src', 'scenes-repository-list.json')
-  const repos = fs.readJSONSync(repositoryFilePath) as RepositoryFile
 
-  for (const repo of repos.repositories) {
-    if (!repo.url.startsWith('https://')) {
-      throw new Error(`Repo ${repo.url} is not safe.`)
-    }
+  const promises = repositoryListJson.repositories.map(repo => queue.add(
+    async() => {
+      if (!repo.url.startsWith('https://')) {
+        throw new Error(`Repo ${repo.url} is not safe.`)
+      }
 
-    const dirName = repo.url.replace('https://', '').replace(/\//g, '_')
-    const repoPath = path.resolve(currentWorkingDir, dirName)
+      const dirName = repo.url.replace('https://', '').replace(/\//g, '_')
+      const repoPath = path.resolve(currentWorkingDir, dirName) + Math.random()
 
-    fs.removeSync(repoPath);
-    fs.mkdirSync(repoPath, { recursive: true })
+      fs.removeSync(repoPath);
+      fs.mkdirSync(repoPath, { recursive: true })
 
-    await downloadRepo(currentWorkingDir, repo.url, repoPath)
-    if (repo.base) {
-      await relocateScene(repoPath, repo.base)
-    }
-  }
-
+      await downloadRepo(currentWorkingDir, repo.url, repoPath)
+      if (repo.base) {
+        relocateScene(repoPath, repo.base)
+      }
+    })
+  )
+  await Promise.all(promises)
 }
