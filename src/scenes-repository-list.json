@@ -7,6 +7,10 @@
     {
       "url": "https://github.com/decentraland-scenes/switchboard-platforms",
       "base": "5,3"
+    },
+    {
+      "url": "https://github.com/decentraland-scenes/testUVs",
+      "base": "5,6"
     }
   ]
 }
