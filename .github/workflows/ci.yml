@@ -1,4 +1,4 @@
-name: docker
+name: Deploy test scenes
 
 on:
   schedule:
