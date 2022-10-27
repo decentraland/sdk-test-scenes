@@ -6,6 +6,7 @@ import pQueue from 'p-queue'
 
 import { installDependencies, runDclBuild } from './utils/shellCommands'
 import {
+  BUILD_CONCURRENCY,
   ECS6_BOILERPLATE,
   ECS7_BOILERPLATE,
   GENERATED_FOLDER,
@@ -162,8 +163,8 @@ async function buildScene(sceneFolder: string, factoryFolder: string) {
   }
 }
 
+
 async function createFactoryFolder(ecsVersion: EcsVersion) {
-  const BUILD_CONCURRENCY = ecsVersion === 'ecs6' ? 5 : 2
   const boilerPlatePath = getBoilerPlatePath(ecsVersion)
   const sceneFactoryFolder = `${SCENE_FACTORY_FOLDER}-${ecsVersion}`
 
@@ -194,7 +195,7 @@ async function createFactoryFolder(ecsVersion: EcsVersion) {
 
 
 export async function buildScenes() {
-  const queue = new pQueue({ concurrency: 10 })
+  const queue = new pQueue({ concurrency: BUILD_CONCURRENCY })
   const allTestScenes = await getAllTestScene(true)
 
   const factory: Record<EcsVersion, Awaited<ReturnType<typeof createFactoryFolder>>> = {
