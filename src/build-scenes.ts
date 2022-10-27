@@ -195,31 +195,37 @@ async function createFactoryFolder(ecsVersion: EcsVersion) {
 
 
 export async function buildScenes() {
-  const queue = new pQueue({ concurrency: BUILD_CONCURRENCY })
   const allTestScenes = await getAllTestScene(true)
 
-  const factory: Record<EcsVersion, Awaited<ReturnType<typeof createFactoryFolder>>> = {
+  const listOfFactories: Record<EcsVersion, Awaited<ReturnType<typeof createFactoryFolder>>> = {
     ecs6: await createFactoryFolder('ecs6'),
     ecs7: await createFactoryFolder('ecs7')
   }
 
-  await Promise.all(
-    allTestScenes.map(sceneFolder => queue.add(
-      async () => {
-        const currentFactory = factory.ecs6
+  for (const [key, currentFactory] of Object.entries(listOfFactories)) {
+    const ecsVersion = key as EcsVersion
+    const queue = new pQueue({ concurrency: BUILD_CONCURRENCY })
+    await Promise.all(
+      allTestScenes.map(sceneFolder => queue.add(
+        async () => {
+          // Disable for now
+          if (ecsVersion === 'ecs7') return
 
-        const folder = currentFactory.getFactoryFolder()
-        try {
-          await buildScene(sceneFolder, folder)
-        } catch (err) {
-          console.log({ sceneFolder })
-          console.error(err)
-          process.exit(1)
-        }
-        currentFactory.restoreFactoryFolder(folder)
-      })
+          const folder = currentFactory.getFactoryFolder()
+          try {
+            await buildScene(sceneFolder, folder)
+          } catch (err) {
+            console.log({ sceneFolder })
+            console.error(err)
+            process.exit(1)
+          }
+          currentFactory.restoreFactoryFolder(folder)
+        })
+      )
     )
-  )
+
+  }
+
 
   await fs.rm(path.resolve(process.cwd(), GENERATED_FOLDER), { recursive: true, force: true })
 
