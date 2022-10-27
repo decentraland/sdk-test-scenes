@@ -5,6 +5,7 @@ import PQueue from 'p-queue/dist'
 import repositoryListJson from './scenes-repository-list.json'
 import { TEST_SCENE_FOLDER } from './utils/consts'
 import { downloadRepo } from './utils/shellCommands'
+import glob from 'glob'
 
 const Vector2 = {
   fromString(str: string) {
@@ -37,12 +38,32 @@ function relocateScene(workingDir: string, newBaseParcel: string) {
   fs.writeJsonSync(sceneJsonPath, sceneJson, { spaces: 2 })
 }
 
+
+function deleteOldRepos() {
+  const currentWorkingDir = path.resolve(process.cwd(), TEST_SCENE_FOLDER)
+  const allFiles = glob.sync('*', {
+    cwd: currentWorkingDir,
+    dot: true,
+    absolute: false
+  })
+
+  for (const directory of allFiles) {
+    if (directory.startsWith('github')) {
+      fs.removeSync(path.resolve(currentWorkingDir, directory));
+    }
+  }
+
+}
+
+
 export async function cloneTestRepos() {
   const queue = new PQueue({ concurrency: 10 })
   const currentWorkingDir = path.resolve(process.cwd(), TEST_SCENE_FOLDER)
 
+  deleteOldRepos()
+
   const promises = repositoryListJson.repositories.map(repo => queue.add(
-    async() => {
+    async () => {
       if (!repo.url.startsWith('https://')) {
         throw new Error(`Repo ${repo.url} is not safe.`)
       }

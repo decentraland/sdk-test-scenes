@@ -6,11 +6,15 @@ import pQueue from 'p-queue'
 
 import { installDependencies, runDclBuild } from './utils/shellCommands'
 import {
+  ECS6_BOILERPLATE,
+  ECS7_BOILERPLATE,
+  GENERATED_FOLDER,
   SCENE_FACTORY_FOLDER,
   TEST_SCENE_FOLDER,
   TSCONFIG_EXAMPLE_PATH,
   workspaceJsonFileName
 } from './utils/consts'
+import { EcsVersion } from './utils/types'
 
 
 function getRemovableFilesFromSceneFolder(folder: string) {
@@ -77,11 +81,16 @@ function getFiles(folder: string) {
   })
 }
 
-async function copyFactoryScene(folder: string) {
-  const files = getFiles(SCENE_FACTORY_FOLDER)
+function getBoilerPlatePath(ecsVersion: EcsVersion) {
+  return ecsVersion === 'ecs7' ? ECS7_BOILERPLATE : ECS6_BOILERPLATE
+}
+
+async function copyFactoryScene(folder: string, ecsVersion: EcsVersion = 'ecs6') {
+  const boilerPlatePath = getBoilerPlatePath(ecsVersion)
+  const files = getFiles(boilerPlatePath)
 
   for (const filePath of files) {
-    const srcPath = path.resolve(SCENE_FACTORY_FOLDER, filePath)
+    const srcPath = path.resolve(boilerPlatePath, filePath)
     const dstPath = path.resolve(folder, filePath)
 
     if ((await fs.lstat(srcPath)).isDirectory()) {
@@ -119,10 +128,10 @@ async function buildScene(sceneFolder: string, factoryFolder: string) {
     throw new Error(`Scene ${sceneName} has corrupt scene.json, main is not defined.`)
   }
 
-  // if (await fs.pathExists(path.resolve(sceneFolder, 'game.js'))) {
-  //   // The scene has already compiled
-  //   return
-  // }
+  if (await fs.pathExists(path.resolve(sceneFolder, 'game.js'))) {
+    // The scene has already compiled
+    return
+  }
 
   console.log(`Building scene '${sceneName}'`)
 
@@ -153,22 +162,23 @@ async function buildScene(sceneFolder: string, factoryFolder: string) {
   }
 }
 
+async function createFactoryFolder(ecsVersion: EcsVersion) {
+  const BUILD_CONCURRENCY = ecsVersion === 'ecs6' ? 5 : 2
+  const boilerPlatePath = getBoilerPlatePath(ecsVersion)
+  const sceneFactoryFolder = `${SCENE_FACTORY_FOLDER}-${ecsVersion}`
 
-export async function buildScenes() {
-  const queue = new pQueue({ concurrency: 10 })
-  await installDependencies(path.resolve(SCENE_FACTORY_FOLDER))
+  await installDependencies(boilerPlatePath)
+
   const folderPaths = await Promise.all(
-    Array.from({ length: 10 }).map(async (_, index) => {
-      const folderPath = SCENE_FACTORY_FOLDER + index
+    Array.from({ length: BUILD_CONCURRENCY }).map(async (_, index) => {
+      const folderPath = `${sceneFactoryFolder}-${index}`
       await fs.ensureDir(folderPath)
-      await copyFactoryScene(folderPath)
+      await copyFactoryScene(folderPath, ecsVersion)
       return folderPath
     })
   )
 
-  const allTestScenes = await getAllTestScene(true)
-
-  function getFactoryfolder() {
+  function getFactoryFolder() {
     return folderPaths.pop()!
   }
 
@@ -176,10 +186,28 @@ export async function buildScenes() {
     folderPaths.push(folder)
   }
 
+  return {
+    getFactoryFolder,
+    restoreFactoryFolder
+  }
+}
+
+
+export async function buildScenes() {
+  const queue = new pQueue({ concurrency: 10 })
+  const allTestScenes = await getAllTestScene(true)
+
+  const factory: Record<EcsVersion, Awaited<ReturnType<typeof createFactoryFolder>>> = {
+    ecs6: await createFactoryFolder('ecs6'),
+    ecs7: await createFactoryFolder('ecs7')
+  }
+
   await Promise.all(
     allTestScenes.map(sceneFolder => queue.add(
       async () => {
-        const folder = getFactoryfolder()
+        const currentFactory = factory.ecs6
+
+        const folder = currentFactory.getFactoryFolder()
         try {
           await buildScene(sceneFolder, folder)
         } catch (err) {
@@ -187,15 +215,15 @@ export async function buildScenes() {
           console.error(err)
           process.exit(1)
         }
-        restoreFactoryFolder(folder)
+        currentFactory.restoreFactoryFolder(folder)
       })
     )
   )
 
-  await Promise.all(folderPaths.map(path => fs.rm(path, { recursive: true, force: true })))
+  await fs.rm(path.resolve(process.cwd(), GENERATED_FOLDER), { recursive: true, force: true })
 
   const testSceneFolderPath = path.resolve(process.cwd(), TEST_SCENE_FOLDER)
-  const packageJsonPath = path.resolve(SCENE_FACTORY_FOLDER, "package.json")
+  const packageJsonPath = path.resolve(ECS7_BOILERPLATE, "package.json")
   const workspaceObject = {
     folders: (await getAllTestScene(false)).map(sceneFolder => ({ path: sceneFolder })),
     settings: {}
