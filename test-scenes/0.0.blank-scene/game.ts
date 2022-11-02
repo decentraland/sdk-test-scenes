@@ -1,0 +1,2 @@
+
+log('blank-scene')
