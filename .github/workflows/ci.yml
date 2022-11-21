@@ -10,15 +10,24 @@ on:
   pull_request:
 
 jobs:
+  skip-up-to-date-schedules:
+    runs-on: ubuntu-latest
+    # Map a step output to a job output
+    outputs:
+      up-to-date: ${{ steps.new_ecs6_version.outputs.value > 0 && steps.new_cli_version.outputs.value > 0 && steps.new_ecs7_version.outputs.value > 0 }}
+    steps:
+      - id: new_ecs6_version
+        run: echo "value=$(curl -s https://api.github.com/repos/decentraland/js-sdk-toolchain/commits/6.x.x | jq -r "((now - (.commit.author.date | fromdateiso8601) ) / (60*60*24) | trunc)")" >> $GITHUB_OUTPUT
+      - id: new_ecs7_version
+        run: echo "value=$(curl -s https://api.github.com/repos/decentraland/js-sdk-toolchain/commits/main | jq -r "((now - (.commit.author.date | fromdateiso8601) ) / (60*60*24) | trunc)")" >> $GITHUB_OUTPUT
+      - id: new_cli_version
+        run: echo "value=$(curl -s https://api.github.com/repos/decentraland/cli/commits/main | jq -r "((now - (.commit.author.date | fromdateiso8601) ) / (60*60*24) | trunc)")" >> $GITHUB_OUTPUT
   build-and-push:
     runs-on: ubuntu-latest
+    needs: skip-up-to-date-schedules
+    if: ${{ github.event_name != 'schedule' || needs.skip-up-to-date-schedules.outputs.up-to-date == false }}
     steps:
       - uses: actions/checkout@v2
-
-      - name: Check if sdk version changed only on cron job
-        id: schedule
-        if: ${{ github.event_name == 'schedule' }}
-        run: exit $(curl -s https://api.github.com/repos/decentraland/js-sdk-toolchain/commits/main | jq -r "((now - (.commit.author.date | fromdateiso8601) ) / (60*60*24) | trunc)")
 
       - name: Use Node.js 16.x
         uses: actions/setup-node@v1
