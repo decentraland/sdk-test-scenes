@@ -2,7 +2,7 @@ name: Deploy test scenes
 
 on:
   schedule:
-    - cron: '0 10 * * *'
+    - cron: "0 10 * * *"
   workflow_dispatch:
   push:
     branches:
@@ -12,20 +12,28 @@ on:
 jobs:
   skip-up-to-date-schedules:
     runs-on: ubuntu-latest
-    # Map a step output to a job output
     outputs:
-      up-to-date: ${{ steps.new_ecs6_version.outputs.value > 0 && steps.new_cli_version.outputs.value > 0 && steps.new_ecs7_version.outputs.value > 0 }}
+      out_of_date: ${{ steps.set_output.outputs.ecs6 == 0 || steps.set_output.outputs.ecs7 == 0 || steps.set_output.outputs.cli == 0 }}
     steps:
-      - id: new_ecs6_version
-        run: echo "value=$(curl -s https://api.github.com/repos/decentraland/js-sdk-toolchain/commits/6.x.x | jq -r "((now - (.commit.author.date | fromdateiso8601) ) / (60*60*24) | trunc)")" >> $GITHUB_OUTPUT
-      - id: new_ecs7_version
-        run: echo "value=$(curl -s https://api.github.com/repos/decentraland/js-sdk-toolchain/commits/main | jq -r "((now - (.commit.author.date | fromdateiso8601) ) / (60*60*24) | trunc)")" >> $GITHUB_OUTPUT
-      - id: new_cli_version
-        run: echo "value=$(curl -s https://api.github.com/repos/decentraland/cli/commits/main | jq -r "((now - (.commit.author.date | fromdateiso8601) ) / (60*60*24) | trunc)")" >> $GITHUB_OUTPUT
+      - name: Print each result (value == 0 is out-of-date)
+        run: |
+          echo "ecs6=$(curl -s https://api.github.com/repos/decentraland/js-sdk-toolchain/commits/6.x.x | jq -r "((now - (.commit.author.date | fromdateiso8601) ) / (60*60*24) | trunc)")"
+          echo "ecs7=$(curl -s https://api.github.com/repos/decentraland/js-sdk-toolchain/commits/main | jq -r "((now - (.commit.author.date | fromdateiso8601) ) / (60*60*24) | trunc)")"
+          echo "cli=$(curl -s https://api.github.com/repos/decentraland/cli/commits/main | jq -r "((now - (.commit.author.date | fromdateiso8601) ) / (60*60*24) | trunc)")"
+      - name: Set output
+        id: set_output
+        run: |
+          echo "ecs6=$(curl -s https://api.github.com/repos/decentraland/js-sdk-toolchain/commits/6.x.x | jq -r "((now - (.commit.author.date | fromdateiso8601) ) / (60*60*24) | trunc)")" >> $GITHUB_OUTPUT
+          echo "ecs7=$(curl -s https://api.github.com/repos/decentraland/js-sdk-toolchain/commits/main | jq -r "((now - (.commit.author.date | fromdateiso8601) ) / (60*60*24) | trunc)")" >> $GITHUB_OUTPUT
+          echo "cli=$(curl -s https://api.github.com/repos/decentraland/cli/commits/main | jq -r "((now - (.commit.author.date | fromdateiso8601) ) / (60*60*24) | trunc)")" >> $GITHUB_OUTPUT
+      - name: Print condition
+        run: echo "Is it up-to-date? $JOB_CONDITION"
+        env:
+          JOB_CONDITION: ${{ steps.set_output.outputs.ecs6 > 0 && steps.set_output.outputs.ecs7 > 0 && steps.set_output.outputs.cli > 0 }}
   build-and-push:
     runs-on: ubuntu-latest
     needs: skip-up-to-date-schedules
-    if: ${{ github.event_name != 'schedule' || needs.skip-up-to-date-schedules.outputs.up-to-date == false }}
+    if: ${{ github.event_name != 'schedule' || needs.skip-up-to-date-schedules.outputs.out_of_date }}
     steps:
       - uses: actions/checkout@v2
 
