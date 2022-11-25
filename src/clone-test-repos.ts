@@ -68,15 +68,28 @@ export async function cloneTestRepos() {
         throw new Error(`Repo ${repo.url} is not safe.`)
       }
 
+      const id = new Date().getTime()
       const dirName = repo.url.replace('https://', '').replace(/\//g, '_')
-      const repoPath = path.resolve(currentWorkingDir, dirName) + Math.random()
+      const repoPath = `${path.resolve(currentWorkingDir, dirName)}-${id}`
 
       fs.removeSync(repoPath);
       fs.mkdirSync(repoPath, { recursive: true })
 
       await downloadRepo(currentWorkingDir, repo.url, repoPath)
-      if (repo.base) {
-        relocateScene(repoPath, repo.base)
+
+      const worskpaceFilePath = path.resolve(repoPath, "dcl-workspace.json")
+      if (fs.existsSync(worskpaceFilePath)) {
+        const workspace: { folders: { path: string }[] } = fs.readJsonSync(worskpaceFilePath)
+        for (const project of workspace.folders) {
+          const projectPath = path.resolve(repoPath, project.path)
+          fs.moveSync(projectPath, `${repoPath}-${project.path}`)
+        }
+
+        fs.removeSync(repoPath)
+      } else {
+        if (repo.base) {
+          relocateScene(repoPath, repo.base)
+        }
       }
     })
   )

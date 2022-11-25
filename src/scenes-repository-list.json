@@ -23,6 +23,10 @@
     {
       "url": "https://github.com/decentraland-scenes/conway-game-of-life",
       "base": "1,-3"
+    },
+    {
+      "url": "https://github.com/decentraland-scenes/sdk7-goerli-plaza",
+      "base": "60,60"
     }
   ]
 }
