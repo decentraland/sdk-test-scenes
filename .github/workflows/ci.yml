@@ -31,7 +31,7 @@ jobs:
       - name: Print condition
         run: echo "Is it up-to-date? $JOB_CONDITION"
         env:
-          JOB_CONDITION: ${{ steps.set_output.outputs.ecs6 == 0 || steps.set_output.outputs.ecs7 == 0 || steps.set_output.outputs.cli == 0 || steps.set_output.outputs.goerliplaza == 0}}
+          JOB_CONDITION: ${{ steps.set_output.outputs.ecs6 == 0 || steps.set_output.outputs.ecs7 == 0 || steps.set_output.outputs.cli == 0 || steps.set_output.outputs.goerliplaza == 0 }}
   build-and-push:
     runs-on: ubuntu-latest
     needs: skip-up-to-date-schedules
