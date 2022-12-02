@@ -90,6 +90,8 @@ export async function cloneTestRepos() {
         if (repo.base) {
           relocateScene(repoPath, repo.base)
         }
+
+        fs.removeSync(path.resolve(repoPath, '.git'))
       }
     })
   )

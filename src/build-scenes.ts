@@ -139,6 +139,10 @@ async function buildScene(sceneFolder: string, factoryFolder: string) {
   if (useOriginalPackageJson) {
     await installDependencies(sceneFolder)
     await runDclBuild(sceneFolder)
+    const nodeModulesPath = path.resolve(sceneFolder, 'node_modules')
+    if (fs.pathExistsSync(nodeModulesPath)) {
+      fs.removeSync(nodeModulesPath)
+    }
   } else {
 
     await copyScene(sceneFolder, factoryFolder)
