@@ -168,13 +168,13 @@ async function createFactoryFolder(ecsVersion: EcsVersion) {
   const boilerPlatePath = getBoilerPlatePath(ecsVersion)
   const sceneFactoryFolder = `${SCENE_FACTORY_FOLDER}-${ecsVersion}`
 
-  await installDependencies(boilerPlatePath)
-
   const folderPaths = await Promise.all(
     Array.from({ length: BUILD_CONCURRENCY }).map(async (_, index) => {
       const folderPath = `${sceneFactoryFolder}-${index}`
       await fs.ensureDir(folderPath)
       await copyFactoryScene(folderPath, ecsVersion)
+
+      await installDependencies(path.resolve(process.cwd(), folderPath))
       return folderPath
     })
   )
