@@ -165,6 +165,12 @@ async function buildScene(sceneFolder: string, factoryFolder: string) {
 
     await removeFilesFromSceneFolder(factoryFolder)
   }
+
+
+  const gameJsPath = path.resolve(sceneFolder, sceneJson.main)
+  if (!fs.existsSync(gameJsPath)) {
+    throw new Error(`The file ${gameJsPath} doesn't exits. Please verify the compilation is going well.`)
+  }
 }
 
 
