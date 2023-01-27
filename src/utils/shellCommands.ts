@@ -78,11 +78,12 @@ export function runDclBuild(workingDir: string): Promise<void> {
   })
 }
 
-export function downloadRepo(workingDir: string, url: string, destinationPath: string): Promise<void> {
+export function downloadRepo(workingDir: string, url: string, destinationPath: string, branch?: string): Promise<void> {
+  const branchParam = branch ? ['-b', branch] : []
   return runCommand({
     workingDir,
     command: 'git',
-    args: ['clone', '--depth', '1', url, destinationPath],
+    args: ['clone', ...branchParam, '--depth', '1', url, destinationPath],
     fdStandards: FileDescriptorStandardOption.PIPE
   })
 }

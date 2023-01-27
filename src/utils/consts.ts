@@ -1,4 +1,6 @@
 
+import { argv } from "process";
+
 export const ECS6_BOILERPLATE = 'src/ecs6-boilerplate'
 export const ECS7_BOILERPLATE = 'src/ecs7-boilerplate'
 
@@ -9,3 +11,5 @@ export const TSCONFIG_EXAMPLE_PATH = "tsconfig.example.json"
 export const workspaceJsonFileName = 'dcl-workspace.json'
 
 export const BUILD_CONCURRENCY = 3
+
+export const VERBOSE: boolean = (argv.find(item => ['-v', '--verbose'].includes(item)) !== undefined) || false

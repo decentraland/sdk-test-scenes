@@ -51,7 +51,7 @@ jobs:
         run: npm ci
 
       - name: build scenes
-        run: npm run build-scenes
+        run: npm run build-scenes -- --verbose
 
       - name: Build Image
         id: build-image

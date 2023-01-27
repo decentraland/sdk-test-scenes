@@ -26,7 +26,8 @@
     },
     {
       "url": "https://github.com/decentraland-scenes/sdk7-goerli-plaza",
-      "base": "60,60"
+      "base": "60,60",
+      "branch": "dev"
     }
   ]
 }

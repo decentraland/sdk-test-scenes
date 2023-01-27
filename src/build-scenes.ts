@@ -13,6 +13,7 @@ import {
   SCENE_FACTORY_FOLDER,
   TEST_SCENE_FOLDER,
   TSCONFIG_EXAMPLE_PATH,
+  VERBOSE,
   workspaceJsonFileName
 } from './utils/consts'
 import { EcsVersion } from './utils/types'
@@ -66,7 +67,12 @@ async function getAllTestScene(absolute?: boolean) {
     if ((await fs.lstat(sceneFolderPath)).isDirectory()) {
       const sceneJsonPath = path.resolve(sceneFolderPath, 'scene.json')
       if ((await fs.pathExists(sceneJsonPath))) {
-        allDirectory.push(item)
+        const sceneJson = await fs.readJSON(sceneJsonPath)
+        const scene: { path: string, version: EcsVersion } = {
+          path: item,
+          version: sceneJson?.runtimeVersion === '7' ? 'ecs7' : 'ecs6'
+        }
+        allDirectory.push(scene)
       }
     }
   }
@@ -129,7 +135,8 @@ async function buildScene(sceneFolder: string, factoryFolder: string) {
     throw new Error(`Scene ${sceneName} has corrupt scene.json, main is not defined.`)
   }
 
-  if (await fs.pathExists(path.resolve(sceneFolder, 'game.js'))) {
+  if (await fs.pathExists(path.resolve(sceneFolder, sceneJson.main))) {
+    if (VERBOSE) console.log(`buildScene> Skipping ${sceneFolder}`)
     // The scene has already compiled
     return
   }
@@ -137,35 +144,53 @@ async function buildScene(sceneFolder: string, factoryFolder: string) {
   console.log(`Building scene '${sceneName}'`)
 
   if (useOriginalPackageJson) {
+    if (VERBOSE) console.log(`buildScene> ${sceneFolder} use its own package json > installing dependencies scene`)
     await installDependencies(sceneFolder)
+
+    if (VERBOSE) console.log(`buildScene> ${sceneFolder} running dcl build`)
     await runDclBuild(sceneFolder)
+
     const nodeModulesPath = path.resolve(sceneFolder, 'node_modules')
     if (fs.pathExistsSync(nodeModulesPath)) {
       fs.removeSync(nodeModulesPath)
     }
   } else {
 
+    if (VERBOSE) console.log(`buildScene> ${sceneFolder} use generic package json > copying scene`)
     await copyScene(sceneFolder, factoryFolder)
 
+    if (VERBOSE) console.log(`buildScene> ${sceneFolder} copying tsconfig.json`)
     const tsConfigPath = path.resolve(factoryFolder, "tsconfig.json")
     await fs.copyFile(path.resolve(factoryFolder, TSCONFIG_EXAMPLE_PATH), path.resolve(factoryFolder, "tsconfig.json"))
 
-    const tsConfigJson = await fs.readJson(tsConfigPath)
 
-    tsConfigJson.compilerOptions.outFile = sceneJson.main
-    await fs.writeJson(tsConfigPath, tsConfigJson, { spaces: 2 })
+    if (VERBOSE) console.log(`buildScene> ${sceneFolder} updating tsconfig.json`)
 
+    if (sceneJson.runtimeVersion === undefined || sceneJson.runtimeVersion !== '7') {
+      const tsConfigJson = await fs.readJson(tsConfigPath)
+      tsConfigJson.compilerOptions.outFile = sceneJson.main
+      await fs.writeJson(tsConfigPath, tsConfigJson, { spaces: 2 })
+    }
+
+    if (VERBOSE) console.log(`buildScene> ${sceneFolder} running dcl build`)
     await runDclBuild(factoryFolder)
 
     const gameJsPath = path.resolve(factoryFolder, sceneJson.main)
     const gameJsLibPath = path.resolve(factoryFolder, `${sceneJson.main}.lib`)
 
+    if (VERBOSE) console.log(`buildScene> ${sceneFolder} finish copying index.js`)
     await fs.copyFile(gameJsPath, path.resolve(sceneFolder, sceneJson.main))
-    await fs.copyFile(gameJsLibPath, path.resolve(sceneFolder, `${sceneJson.main}.lib`))
 
+    if (fs.existsSync(gameJsLibPath)) {
+      await fs.copyFile(gameJsLibPath, path.resolve(sceneFolder, `${sceneJson.main}.lib`))
+    }
+
+    if (VERBOSE) console.log(`buildScene> ${sceneFolder} cleaning `)
     await removeFilesFromSceneFolder(factoryFolder)
+
   }
 
+  if (VERBOSE) console.log(`buildScene> ${sceneFolder} finished`)
 
   const gameJsPath = path.resolve(sceneFolder, sceneJson.main)
   if (!fs.existsSync(gameJsPath)) {
@@ -175,7 +200,6 @@ async function buildScene(sceneFolder: string, factoryFolder: string) {
 
 
 async function createFactoryFolder(ecsVersion: EcsVersion) {
-  const boilerPlatePath = getBoilerPlatePath(ecsVersion)
   const sceneFactoryFolder = `${SCENE_FACTORY_FOLDER}-${ecsVersion}`
 
   const folderPaths = await Promise.all(
@@ -216,16 +240,14 @@ export async function buildScenes() {
     const ecsVersion = key as EcsVersion
     const queue = new pQueue({ concurrency: BUILD_CONCURRENCY })
     await Promise.all(
-      allTestScenes.map(sceneFolder => queue.add(
+      allTestScenes.map(scene => queue.add(
         async () => {
-          // Disable for now
-          if (ecsVersion === 'ecs7') return
-
+          if (ecsVersion !== scene.version) return
           const folder = currentFactory.getFactoryFolder()
           try {
-            await buildScene(sceneFolder, folder)
+            await buildScene(scene.path, folder)
           } catch (err) {
-            console.log({ sceneFolder })
+            console.log({ scene })
             console.error(err)
             process.exit(1)
           }
@@ -242,7 +264,7 @@ export async function buildScenes() {
   const testSceneFolderPath = path.resolve(process.cwd(), TEST_SCENE_FOLDER)
   const packageJsonPath = path.resolve(ECS7_BOILERPLATE, "package.json")
   const workspaceObject = {
-    folders: (await getAllTestScene(false)).map(sceneFolder => ({ path: sceneFolder })),
+    folders: (await getAllTestScene(false)).map(sceneFolder => ({ path: sceneFolder.path })),
     settings: {}
   }
   await fs.writeJson(path.resolve(testSceneFolderPath, workspaceJsonFileName), workspaceObject, { spaces: 2 })
