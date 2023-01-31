@@ -83,7 +83,7 @@ jobs:
         if: github.ref == 'refs/heads/main'
         uses: decentraland/dcl-deploy-action@main
         with:
-          dockerImage: "${{ steps.push-to-quay.outputs.registry-path }}"
+          dockerImage: quay.io/decentraland/sdk-test-scenes@"${{ steps.push-to-quay.outputs.digest }}"
           serviceName: sdk-test-scenes
           env: dev
           token: ${{ secrets.GITHUB_TOKEN }}
