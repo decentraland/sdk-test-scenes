@@ -58,7 +58,7 @@ jobs:
         uses: redhat-actions/buildah-build@v2
         with:
           image: sdk-test-scenes
-          tags: ${{ github.sha }} next
+          tags: ${{ github.run_id }} ${{ github.sha }} next
           dockerfiles: |
             ./Dockerfile
       # Podman Login action (https://github.com/redhat-actions/podman-login) also be used to log in,
@@ -83,7 +83,7 @@ jobs:
         if: github.ref == 'refs/heads/main'
         uses: decentraland/dcl-deploy-action@main
         with:
-          dockerImage: quay.io/decentraland/sdk-test-scenes@"${{ steps.push-to-quay.outputs.digest }}"
+          dockerImage: "${{ steps.push-to-quay.outputs.registry-path }}"
           serviceName: sdk-test-scenes
           env: dev
           token: ${{ secrets.GITHUB_TOKEN }}
