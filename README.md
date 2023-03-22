@@ -1,5 +1,4 @@
 # SDK Test Scenes
-
 Welcome to the SDK Test Scene repository! The goal of this repo is to build all scenes listed in `test-scenes` and to fetch and build the scenes repo listed in `src/scenes-repository-list.json`.
 
 ## Step to add a local scene
