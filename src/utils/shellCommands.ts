@@ -69,11 +69,11 @@ export function installDependencies(workingDir: string): Promise<void> {
   })
 }
 
-export function runDclBuild(workingDir: string): Promise<void> {
+export function runSceneBuild(workingDir: string): Promise<void> {
   return runCommand({
     workingDir,
-    command: 'dcl',
-    args: ['build'],
+    command: 'npm',
+    args: ['run', 'build'],
     fdStandards: FileDescriptorStandardOption.ONLY_IF_THROW
   })
 }

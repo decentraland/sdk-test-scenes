@@ -4,7 +4,7 @@ import * as fs from 'fs-extra'
 import glob from 'glob'
 import pQueue from 'p-queue'
 
-import { installDependencies, runDclBuild } from './utils/shellCommands'
+import { installDependencies, runSceneBuild } from './utils/shellCommands'
 import {
   BUILD_CONCURRENCY,
   ECS6_BOILERPLATE,
@@ -148,7 +148,7 @@ async function buildScene(sceneFolder: string, factoryFolder: string) {
     await installDependencies(sceneFolder)
 
     if (VERBOSE) console.log(`buildScene> ${sceneFolder} running dcl build`)
-    await runDclBuild(sceneFolder)
+    await runSceneBuild(sceneFolder)
 
     const nodeModulesPath = path.resolve(sceneFolder, 'node_modules')
     if (fs.pathExistsSync(nodeModulesPath)) {
@@ -173,7 +173,7 @@ async function buildScene(sceneFolder: string, factoryFolder: string) {
     }
 
     if (VERBOSE) console.log(`buildScene> ${sceneFolder} running dcl build`)
-    await runDclBuild(factoryFolder)
+    await runSceneBuild(factoryFolder)
 
     const gameJsPath = path.resolve(factoryFolder, sceneJson.main)
     const gameJsLibPath = path.resolve(factoryFolder, `${sceneJson.main}.lib`)

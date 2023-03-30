@@ -9,4 +9,4 @@ RUN npm i -g decentraland@next
 RUN npm install
 
 EXPOSE 8000
-CMD [ "npm", "start", "--", "--ci", "--skip-build", "--skip-install" ]
+CMD [ "dcl", "--ci", "--skip-build", "--skip-install" ]
