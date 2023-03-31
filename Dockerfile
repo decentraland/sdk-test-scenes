@@ -8,5 +8,7 @@ COPY ./test-scenes/ .
 RUN npm i -g decentraland@next
 RUN npm install
 
+ENV CI true
+
 EXPOSE 8000
-CMD [ "dcl", "--ci", "--skip-build", "--skip-install" ]
+CMD [ "dcl", "start", "--ci", "--skip-build", "--skip-install" ]
