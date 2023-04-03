@@ -23,37 +23,32 @@ export function runCommand({
       env: { ...process.env, NODE_ENV: '' }
     })
 
-    let stdOut = ''
-    let stdErr = ''
+    let stdOut: string[] = []
+    let stdErr: string[] = []
 
     if (standarOption === FileDescriptorStandardOption.PIPE) {
       child.stdout.pipe(process.stdout)
       child.stderr.pipe(process.stderr)
     } else if (standarOption === FileDescriptorStandardOption.ONLY_IF_THROW) {
       child.stdout.on('data', (data) => {
-        stdOut += data.toString()
+        stdOut.push(data.toString())
       });
 
       child.stderr.on('data', (data) => {
-        stdErr += data.toString()
+        stdErr.push(data.toString())
       });
     }
 
     child.on('close', (code) => {
       const errorMessage =
-        `Command '${command}' with args '${args.join(' ')}' exited with code ${code}. \n
-          > Working directory: ${workingDir} `
+        `Command '${command}' with args '${args.join(' ')}' exited with code ${code}. \n > Working directory: ${workingDir}`
 
       if (code !== 0) {
-        if (standarOption == FileDescriptorStandardOption.ONLY_IF_THROW) {
-          reject(
-            new Error(`${errorMessage} \n
-            > Standard output: \n ${stdOut} \n
-            > Error output: \n ${stdErr} \n`)
-          )
-        } else {
-          reject(new Error(errorMessage))
-        }
+        reject(
+          new Error(`${errorMessage}\n
+          > Standard output: \n ${stdOut.join('\n')} \n
+          > Error output: \n ${stdErr.join('\n')} \n`)
+        )
       }
       resolve()
     })
