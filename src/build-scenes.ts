@@ -4,7 +4,7 @@ import * as fs from 'fs-extra'
 import glob from 'glob'
 import pQueue from 'p-queue'
 
-import { installDependencies, runSceneBuild } from './utils/shellCommands'
+import { installDependencies, installSdkNext, runSceneBuild } from './utils/shellCommands'
 import {
   BUILD_CONCURRENCY,
   ECS6_BOILERPLATE,
@@ -17,6 +17,7 @@ import {
   workspaceJsonFileName
 } from './utils/consts'
 import { EcsVersion } from './utils/types'
+import { readFile } from 'fs/promises'
 
 
 function getRemovableFilesFromSceneFolder(folder: string) {
@@ -147,6 +148,13 @@ async function buildScene(sceneFolder: string, factoryFolder: string) {
     if (VERBOSE) console.log(`buildScene> ${sceneFolder} use its own package json > installing dependencies scene`)
     await installDependencies(sceneFolder)
 
+    // scenes from goerli-plaza do not have any @dcl/sdk or decentraland-ecs dependencies
+    // so we need to install them manually
+    const packageJson = await readFile(originalPackageJsonPath, 'utf8')
+    if (!packageJson.includes('@dcl/sdk') || !packageJson.includes('decentraland-ecs')) {
+      await installSdkNext(sceneFolder)
+    }
+
     if (VERBOSE) console.log(`buildScene> ${sceneFolder} running dcl build`)
     await runSceneBuild(sceneFolder)
 
@@ -155,14 +163,12 @@ async function buildScene(sceneFolder: string, factoryFolder: string) {
       fs.removeSync(nodeModulesPath)
     }
   } else {
-
     if (VERBOSE) console.log(`buildScene> ${sceneFolder} use generic package json > copying scene`)
     await copyScene(sceneFolder, factoryFolder)
 
     if (VERBOSE) console.log(`buildScene> ${sceneFolder} copying tsconfig.json`)
     const tsConfigPath = path.resolve(factoryFolder, "tsconfig.json")
     await fs.copyFile(path.resolve(factoryFolder, TSCONFIG_EXAMPLE_PATH), path.resolve(factoryFolder, "tsconfig.json"))
-
 
     if (VERBOSE) console.log(`buildScene> ${sceneFolder} updating tsconfig.json`)
 
@@ -173,6 +179,7 @@ async function buildScene(sceneFolder: string, factoryFolder: string) {
     }
 
     if (VERBOSE) console.log(`buildScene> ${sceneFolder} running dcl build`)
+
     await runSceneBuild(factoryFolder)
 
     const gameJsPath = path.resolve(factoryFolder, sceneJson.main)
@@ -227,7 +234,6 @@ async function createFactoryFolder(ecsVersion: EcsVersion) {
   }
 }
 
-
 export async function buildScenes() {
   const allTestScenes = await getAllTestScene(true)
 
@@ -257,7 +263,6 @@ export async function buildScenes() {
     )
 
   }
-
 
   await fs.rm(path.resolve(process.cwd(), GENERATED_FOLDER), { recursive: true, force: true })
 

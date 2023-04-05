@@ -64,11 +64,20 @@ export function installDependencies(workingDir: string): Promise<void> {
   })
 }
 
+export function installSdkNext(workingDir: string): Promise<void> {
+  return runCommand({
+    workingDir,
+    command: 'npm',
+    args: ['install', '@dcl/sdk@next'],
+    fdStandards: FileDescriptorStandardOption.SILENT
+  })
+}
+
 export function runSceneBuild(workingDir: string): Promise<void> {
   return runCommand({
     workingDir,
     command: 'npm',
-    args: ['run', 'build'],
+    args: ['run', 'build', '--', '--skip-install'],
     fdStandards: FileDescriptorStandardOption.ONLY_IF_THROW
   })
 }
