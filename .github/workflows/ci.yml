@@ -20,14 +20,14 @@ jobs:
           echo "ecs6=$(curl -s https://api.github.com/repos/decentraland/js-sdk-toolchain/commits/6.x.x | jq -r "((now - (.commit.author.date | fromdateiso8601) ) / (60*60*24) | trunc)")"
           echo "ecs7=$(curl -s https://api.github.com/repos/decentraland/js-sdk-toolchain/commits/main | jq -r "((now - (.commit.author.date | fromdateiso8601) ) / (60*60*24) | trunc)")"
           echo "cli=$(curl -s https://api.github.com/repos/decentraland/cli/commits/main | jq -r "((now - (.commit.author.date | fromdateiso8601) ) / (60*60*24) | trunc)")"
-          echo "goerliplaza=$(curl -s https://api.github.com/repos/decentraland-scenes/sdk7-goerli-plaza/commits/main | jq -r "((now - (.commit.author.date | fromdateiso8601) ) / (60*60*24) | trunc)")"
+          echo "goerliplaza=$(curl -s https://api.github.com/repos/decentraland/sdk7-goerli-plaza/commits/main | jq -r "((now - (.commit.author.date | fromdateiso8601) ) / (60*60*24) | trunc)")"
       - name: Set output
         id: set_output
         run: |
           echo "ecs6=$(curl -s https://api.github.com/repos/decentraland/js-sdk-toolchain/commits/6.x.x | jq -r "((now - (.commit.author.date | fromdateiso8601) ) / (60*60*24) | trunc)")" >> $GITHUB_OUTPUT
           echo "ecs7=$(curl -s https://api.github.com/repos/decentraland/js-sdk-toolchain/commits/main | jq -r "((now - (.commit.author.date | fromdateiso8601) ) / (60*60*24) | trunc)")" >> $GITHUB_OUTPUT
           echo "cli=$(curl -s https://api.github.com/repos/decentraland/cli/commits/main | jq -r "((now - (.commit.author.date | fromdateiso8601) ) / (60*60*24) | trunc)")" >> $GITHUB_OUTPUT
-          echo "goerliplaza=$(curl -s https://api.github.com/repos/decentraland-scenes/sdk7-goerli-plaza/commits/main | jq -r "((now - (.commit.author.date | fromdateiso8601) ) / (60*60*24) | trunc)")" >> $GITHUB_OUTPUT
+          echo "goerliplaza=$(curl -s https://api.github.com/repos/decentraland/sdk7-goerli-plaza/commits/main | jq -r "((now - (.commit.author.date | fromdateiso8601) ) / (60*60*24) | trunc)")" >> $GITHUB_OUTPUT
       - name: Print condition
         run: echo "Is it up-to-date? $JOB_CONDITION"
         env:
