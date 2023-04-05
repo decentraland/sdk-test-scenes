@@ -46,6 +46,8 @@ jobs:
 
       - name: install decentraland
         run: npm i -g decentraland@latest
+      - name: install @dcl/sdk@next
+        run: npm i @dcl/sdk@next
 
       - name: install
         run: npm ci
