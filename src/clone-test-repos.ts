@@ -73,7 +73,7 @@ export async function cloneTestRepos() {
 
       const id = new Date().getTime()
       const dirName = repo.url.replace('https://', '').replace(/\//g, '_')
-      const repoPath = path.relative(process.cwd(), `${path.resolve(currentWorkingDir, dirName)}-${id}`)
+      const repoPath = `${path.resolve(currentWorkingDir, dirName)}-${id}`
 
       if (VERBOSE) console.log(`cloneTestRepos> Start cloning repo ${repo.url} ; ${repo.base} ; ${repo.branch ?? 'default'} => ${repoPath}, delete if exists`)
       fs.removeSync(repoPath);
