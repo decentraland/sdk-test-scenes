@@ -1,5 +1,5 @@
 import { Entity, InputAction, Material, MeshCollider, MeshRenderer, PointerEvents, Transform, engine, pointerEventsSystem } from '@dcl/sdk/ecs'
-import { Color4, Vector3 } from '@dcl/sdk/math'
+import { Color4, Vector3, Quaternion } from '@dcl/sdk/math'
 
 const WaveCube = engine.defineComponent('WaveCube', {})
 
@@ -31,9 +31,11 @@ function createCubeWaveSystem() {
           ) *
             2 +
           2
-        
-        // Quaternion.rotateTowards()
-        // transform.rotate(Vector3.Up(), dt * 10)
+    
+        transform.rotation = Quaternion.multiply(
+            transform.rotation,
+            Quaternion.fromAngleAxis(dt * 10, Vector3.Up())
+        )
       }
     },
 
