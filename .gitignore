@@ -3,3 +3,4 @@
 *.js
 dist/
 generated/
+!test-scenes/8.8.portable-experience/bin/index.js
