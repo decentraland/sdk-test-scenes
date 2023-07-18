@@ -11,13 +11,13 @@
 	"tags": [],
 	"scene": {
 		"parcels": [
-			"8,8"
+			"8,9"
 		],
-		"base": "8,8"
+		"base": "8,9"
 	},
 	"requiredPermissions": [],
 	"featureToggles": {
 		"voiceChat": "enabled",
-		"portableExperiences": "enabled"
+		"portableExperiences": "disabled"
 	}
 }

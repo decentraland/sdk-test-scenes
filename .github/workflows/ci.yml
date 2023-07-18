@@ -99,5 +99,5 @@ jobs:
           SLACK_COLOR: ${{ job.status }}
           SLACK_USERNAME: sdk
           SLACK_TITLE: Deploy URL
-          SLACK_MESSAGE: https://sdk-test-scenes.decentraland.io/
+          SLACK_MESSAGE: https://sdk-test-scenes.decentraland.zone/
           SLACK_ICON: https://decentraland.org/icons/icon-144x144.png?v=b57be10317666edc399e2bdf863f26bf
