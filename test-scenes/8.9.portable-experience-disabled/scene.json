@@ -2,9 +2,9 @@
 	"ecs7": true,
 	"runtimeVersion": "7",
 	"display": {
-		"title": "Boedo - CASLA",
+		"title": "Disable PX",
 		"description": "Test px",
-		"navmapThumbnail": "images/scene-thumbnail.png",
+		"navmapThumbnail": "thumbnail.png",
 		"favicon": "favicon_asset"
 	},
 	"main": "bin/index.js",
