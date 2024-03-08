@@ -4,7 +4,7 @@ import { VERBOSE } from "./utils/consts";
 
 async function main() {
   if (VERBOSE) console.log('main> Cloning test repos')
-  await cloneTestRepos()
+  // await cloneTestRepos()
 
   if (VERBOSE) console.log('main> Building scenes')
   await buildScenes()
