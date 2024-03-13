@@ -88,12 +88,8 @@ function getFiles(folder: string) {
   })
 }
 
-function getBoilerPlatePath(ecsVersion: EcsVersion) {
-  return ecsVersion === 'ecs7' ? ECS7_BOILERPLATE : ECS6_BOILERPLATE
-}
-
-async function copyFactoryScene(folder: string, ecsVersion: EcsVersion = 'ecs6') {
-  const boilerPlatePath = getBoilerPlatePath(ecsVersion)
+async function copyFactoryScene(folder: string) {
+  const boilerPlatePath = ECS6_BOILERPLATE
   const files = getFiles(boilerPlatePath)
 
   for (const filePath of files) {
@@ -212,7 +208,7 @@ async function createFactoryFolder(ecsVersion: EcsVersion) {
     Array.from({ length: BUILD_CONCURRENCY }).map(async (_, index) => {
       const folderPath = `${sceneFactoryFolder}-${index}`
       await fs.ensureDir(folderPath)
-      await copyFactoryScene(folderPath, ecsVersion)
+      await copyFactoryScene(folderPath)
 
       await installDependencies(path.resolve(process.cwd(), folderPath))
       return folderPath
