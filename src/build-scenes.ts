@@ -8,7 +8,6 @@ import { installDependencies, installSdkNext, runSceneBuild } from './utils/shel
 import {
   BUILD_CONCURRENCY,
   ECS6_BOILERPLATE,
-  ECS7_BOILERPLATE,
   GENERATED_FOLDER,
   SCENE_FACTORY_FOLDER,
   TEST_SCENE_FOLDER,
