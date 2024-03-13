@@ -1,4 +1,3 @@
-
 import * as path from 'path'
 import * as fs from 'fs-extra'
 import glob from 'glob'
@@ -262,13 +261,11 @@ export async function buildScenes() {
   await fs.rm(path.resolve(process.cwd(), GENERATED_FOLDER), { recursive: true, force: true })
 
   const testSceneFolderPath = path.resolve(process.cwd(), TEST_SCENE_FOLDER)
-  const packageJsonPath = path.resolve(ECS7_BOILERPLATE, "package.json")
   const workspaceObject = {
     folders: (await getAllTestScene(false)).map(sceneFolder => ({ path: sceneFolder.path })),
     settings: {}
   }
   await fs.writeJson(path.resolve(testSceneFolderPath, workspaceJsonFileName), workspaceObject, { spaces: 2 })
-  await fs.copyFile(packageJsonPath, path.resolve(testSceneFolderPath, "package.json"))
 
   await installDependencies(path.resolve(testSceneFolderPath))
 }
