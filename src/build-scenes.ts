@@ -1,4 +1,3 @@
-
 import * as path from 'path'
 import * as fs from 'fs-extra'
 import glob from 'glob'
@@ -8,7 +7,6 @@ import { installDependencies, installSdkNext, runSceneBuild } from './utils/shel
 import {
   BUILD_CONCURRENCY,
   ECS6_BOILERPLATE,
-  ECS7_BOILERPLATE,
   GENERATED_FOLDER,
   SCENE_FACTORY_FOLDER,
   TEST_SCENE_FOLDER,
@@ -89,12 +87,8 @@ function getFiles(folder: string) {
   })
 }
 
-function getBoilerPlatePath(ecsVersion: EcsVersion) {
-  return ecsVersion === 'ecs7' ? ECS7_BOILERPLATE : ECS6_BOILERPLATE
-}
-
-async function copyFactoryScene(folder: string, ecsVersion: EcsVersion = 'ecs6') {
-  const boilerPlatePath = getBoilerPlatePath(ecsVersion)
+async function copyFactoryScene(folder: string) {
+  const boilerPlatePath = ECS6_BOILERPLATE
   const files = getFiles(boilerPlatePath)
 
   for (const filePath of files) {
@@ -213,7 +207,7 @@ async function createFactoryFolder(ecsVersion: EcsVersion) {
     Array.from({ length: BUILD_CONCURRENCY }).map(async (_, index) => {
       const folderPath = `${sceneFactoryFolder}-${index}`
       await fs.ensureDir(folderPath)
-      await copyFactoryScene(folderPath, ecsVersion)
+      await copyFactoryScene(folderPath)
 
       await installDependencies(path.resolve(process.cwd(), folderPath))
       return folderPath
@@ -267,13 +261,11 @@ export async function buildScenes() {
   await fs.rm(path.resolve(process.cwd(), GENERATED_FOLDER), { recursive: true, force: true })
 
   const testSceneFolderPath = path.resolve(process.cwd(), TEST_SCENE_FOLDER)
-  const packageJsonPath = path.resolve(ECS7_BOILERPLATE, "package.json")
   const workspaceObject = {
     folders: (await getAllTestScene(false)).map(sceneFolder => ({ path: sceneFolder.path })),
     settings: {}
   }
   await fs.writeJson(path.resolve(testSceneFolderPath, workspaceJsonFileName), workspaceObject, { spaces: 2 })
-  await fs.copyFile(packageJsonPath, path.resolve(testSceneFolderPath, "package.json"))
 
   await installDependencies(path.resolve(testSceneFolderPath))
 }
